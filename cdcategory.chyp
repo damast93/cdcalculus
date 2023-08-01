@@ -1,0 +1,10 @@
+# axioms for a cd prop
+
+gen c : 1 -> 2 "666666"
+gen d : 1 -> 0 "666666"
+
+rule assoc : c ; id * c = c; c * id
+rule counitL : c ; d * id = id
+rule counitR : c ; id * d = id
+rule cocomm : c ; sw = c
+
