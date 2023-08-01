@@ -1,3 +1,3 @@
-# 
+# CD-Calculus
 
-Compiling the CD calculus to chyp.
+The CD calculus is the internal language of CD categories. 

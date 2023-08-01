@@ -182,5 +182,7 @@ example name (e,u) = do
 examples = [("ex1", ex1), ("ex2", ex2), ("ex3", ex3), ("ex4", ex4), ("ex5", ex5)]
 
 main :: IO ()
-main = do
-  forM_ examples $ \(name, ex) -> example name ex
+main = 
+  forM_ examples $ \(name, ex) -> do
+    example name ex
+    putStrLn "\n"
