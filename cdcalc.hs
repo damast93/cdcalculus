@@ -1,7 +1,7 @@
-import Data.List
-import Control.Monad
+import Data.List (intercalate)
+import Control.Monad (guard, forM_)
 
-{- CD calculus terms and types -}
+{----- CD calculus terms and types -----}
 
 data Generator = Generator { name :: String, dom_ty :: Ty, cod_ty :: Ty } deriving (Eq, Show)
 
@@ -47,7 +47,7 @@ infer e (Mat x y u v) = do
         (Cross s t) -> infer ((x,s) : (y,t) : e) v
         _ -> Nothing
 
-{- Representation of morphisms in a CD category -}
+{----- Representation of morphisms in a CD category -----}
 
 data Mor = 
     Id Ty
@@ -76,7 +76,7 @@ cod (Swap s t) = Cross t s
 cod (Copy t) = Cross t t
 cod (Discard t) = Unit
 
-{- Compiling CD calculus terms to morphisms -}
+{----- Compiling CD calculus terms to morphisms -----}
 
 -- shorthand to extract type: assume a term is well-typed; error if not
 ty :: Context -> Term -> Ty
@@ -109,7 +109,7 @@ compile e (Mat x y w u) = ((Copy t) `Seq` (Tensor (compile e w) (Id t))) `Seq` (
   where t = tyc e
         (Cross t1 t2) = ty e w
 
-{- Compile to chyp -}
+{----- Compilation to chyp -----}
 
 ty_context :: Ty -> Int
 ty_context Unit = 0
@@ -149,7 +149,7 @@ chyp (Swap s t) = swap_chyp (ty_context s) (ty_context t)
 chyp (Copy t) = copy_chyp (ty_context t)
 chyp (Discard t) = discard_chyp (ty_context t)
 
-{------- Examples -------}
+{----- Examples -----}
 
 -- example signature
 f = Generator "f" (N `Cross` N) N
@@ -177,3 +177,10 @@ example name (e,u) = do
   let mor = compile e u
   putStrLn $ "# " ++ show u
   putStrLn $ "let " ++ name ++ " = " ++ chyp mor
+  putStrLn $ "rewrite " ++ name ++ "_simp : " ++ name ++ " = ? by simp(assoc,counitL,counitR,cocomm)" 
+
+examples = [("ex1", ex1), ("ex2", ex2), ("ex3", ex3), ("ex4", ex4), ("ex5", ex5)]
+
+main :: IO ()
+main = do
+  forM_ examples $ \(name, ex) -> example name ex
