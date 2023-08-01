@@ -116,7 +116,7 @@ ty_context Unit = 0
 ty_context N = 1
 ty_context (Cross s t) = ty_context s + ty_context t
 
--- Representations of the coherence isos in chyp
+-- encoding the coherence isos in chyp
 id_chyp :: Int -> String
 id_chyp 0 = "id0"
 id_chyp n = intercalate "*" (replicate n "id")
@@ -151,35 +151,29 @@ chyp (Discard t) = discard_chyp (ty_context t)
 
 {------- Examples -------}
 
+-- example signature
 f = Generator "f" (N `Cross` N) N
 n = Generator "n" Unit N 
 e = Generator "e" (N `Cross` N) Unit 
 
 -- x : N |- let y = n() in f(y,x)
-u1c = [("x", N)]
-u1 = Let "y" (App n Emp) (App f (Pair (Var "y") (Var "x")))
-m1 = compile u1c u1
+ex1 = ([("x", N)], Let "y" (App n Emp) (App f (Pair (Var "y") (Var "x"))))
 
 -- p : N * N |- match (x,y) = p in (y,x)
-
-u2c = [("p", Cross N N)]
-u2 = Mat "x" "y" (Var "p") $ Pair (Var "y") (Var "x")
-m2 = compile u2c u2
+ex2 = ([("p", Cross N N)], Mat "x" "y" (Var "p") $ Pair (Var "y") (Var "x"))
 
 -- x : N |- let y = n() in let u = (x =:= y); y
-
-u3c = [("x", N)]
-u3 = Let "y" (App n Emp) $ Let "_u" (App e (Pair (Var "x") (Var "y"))) $ (Var "y")
-m3 = compile u3c u3
+ex3 = ([("x", N)], Let "y" (App n Emp) $ Let "_u" (App e (Pair (Var "x") (Var "y"))) $ (Var "y"))
 
 -- p : N * N |- match (u,v) = (match (x,y) = p in (y,x)) in v
-
-u4c = [("p", Cross N N)]
-u4 = Mat "u" "v" u2 $ Var "v"
-m4 = compile u4c u4
+ex4 = ([("p", Cross N N)], Mat "u" "v" (Mat "x" "y" (Var "p") $ Pair (Var "y") (Var "x")) $ Var "v")
 
 -- x : N |- match (u,v) = (x,x) in (v,u)
+ex5 = ([("x", N)], Mat "u" "v" (Pair (Var "x") (Var "x")) $ (Pair (Var "v") (Var "u")))
 
-u5c = [("x", N)]
-u5 = Mat "u" "v" (Pair (Var "x") (Var "x")) $ (Pair (Var "v") (Var "u"))
-m5 = compile u5c u5
+-- call `example "f" ex1`
+example :: String -> (Context,Term) -> IO ()
+example name (e,u) = do 
+  let mor = compile e u
+  putStrLn $ "# " ++ show u
+  putStrLn $ "let " ++ name ++ " = " ++ chyp mor
